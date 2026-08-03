@@ -1,7 +1,7 @@
 const { createServer } = require("node:http");
 const { Server } = require("socket.io");
 
-const port = Number(process.env.SOCKET_PORT || 3006);
+const port = Number(process.env.PORT || process.env.SOCKET_PORT || 3006);
 const rooms = new Map();
 
 function getRoom(roomId) {
