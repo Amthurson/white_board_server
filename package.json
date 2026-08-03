@@ -1,0 +1,31 @@
+{
+  "name": "whiteboard-service",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "cert:local": "powershell -NoProfile -ExecutionPolicy Bypass -File ./scripts/generate-local-cert.ps1",
+    "collab": "node ./scripts/socket-server.js",
+    "dev": "next dev --webpack -p 3005",
+    "dev:https": "next dev --webpack -H 0.0.0.0 -p 3005 --experimental-https --experimental-https-key ./certs/local-server-key.pem --experimental-https-cert ./certs/local-server-cert.pem --experimental-https-ca ./certs/local-dev-ca.pem",
+    "build": "next build --webpack",
+    "start": "next start -p 3005",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@excalidraw/excalidraw": "^0.18.0",
+    "cross-env": "^7.0.3",
+    "next": "16.2.12",
+    "react": "19.0.0",
+    "react-dom": "19.0.0",
+    "socket.io": "^4.8.3",
+    "socket.io-client": "^4.8.3",
+    "ws": "^8.21.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.30",
+    "@types/react": "19.0.10",
+    "@types/react-dom": "19.0.4",
+    "playwright": "^1.62.1",
+    "typescript": "^5.9.3"
+  }
+}

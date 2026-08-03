@@ -1,0 +1,9 @@
+services:
+  excalidraw-room:
+    image: excalidraw/excalidraw-room:latest
+    container_name: excalidraw-room
+    restart: unless-stopped
+    ports:
+      - "3002:80"
+    environment:
+      - NODE_ENV=production
