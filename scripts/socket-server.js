@@ -24,7 +24,16 @@ function presence(room) {
   }));
 }
 
-const server = createServer();
+const server = createServer((request, response) => {
+  if (request.url === "/healthz" || request.url === "/") {
+    response.writeHead(200, { "content-type": "text/plain; charset=utf-8" });
+    response.end("ok");
+    return;
+  }
+
+  response.writeHead(404, { "content-type": "text/plain; charset=utf-8" });
+  response.end("not found");
+});
 const io = new Server(server, {
   cors: {
     origin: true,
