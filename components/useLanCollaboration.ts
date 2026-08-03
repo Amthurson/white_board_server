@@ -62,6 +62,16 @@ function createUsername() {
   return name;
 }
 
+function getCollaborationServerUrl() {
+  const configuredUrl = process.env.NEXT_PUBLIC_COLLAB_SERVER_URL?.trim();
+
+  if (configuredUrl) {
+    return configuredUrl;
+  }
+
+  return `${window.location.protocol}//${window.location.hostname}:3006`;
+}
+
 export function useLanCollaboration({ boardId }: LanCollaborationOptions) {
   const [connectionState, setConnectionState] =
     useState<ConnectionState>("connecting");
@@ -133,7 +143,7 @@ export function useLanCollaboration({ boardId }: LanCollaborationOptions) {
   );
 
   useEffect(() => {
-    const socket = io(`${window.location.protocol}//${window.location.hostname}:3006`, {
+    const socket = io(getCollaborationServerUrl(), {
       path: "/socket.io",
       reconnection: true,
       transports: ["websocket"],
