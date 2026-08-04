@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="White Board icon">
+  <rect width="512" height="512" rx="112" fill="#fffaf0"/>
+  <path d="M147 356c55 24 151 24 218 0" fill="none" stroke="#174c3e" stroke-width="22" stroke-linecap="round"/>
+  <path d="M158 304 326 136c18-18 48-18 66 0s18 48 0 66L224 370l-83 24 17-90Z" fill="#f6cf58" stroke="#174c3e" stroke-width="20" stroke-linejoin="round"/>
+  <path d="m320 142 66 66" fill="none" stroke="#174c3e" stroke-width="20" stroke-linecap="round"/>
+  <path d="m158 304 66 66" fill="none" stroke="#174c3e" stroke-width="20" stroke-linecap="round"/>
+  <path d="m141 394 17-90 66 66-83 24Z" fill="#ffffff" stroke="#174c3e" stroke-width="20" stroke-linejoin="round"/>
+  <path d="m141 394 37-11-26-27-11 38Z" fill="#174c3e"/>
+  <circle cx="344" cy="167" r="8" fill="#ffffff" opacity=".85"/>
+</svg>

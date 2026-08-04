@@ -12,9 +12,9 @@ export default async function LoginPage() {
   return (
     <main className="login-shell">
       <section className="login-panel">
-        <p className="eyebrow">Whiteboard Service</p>
-        <h1>登录团队白板</h1>
-        <p className="subtitle">使用 Google 账号进入白板列表，创建会话并保存协作记录。</p>
+        <p className="eyebrow">White Board</p>
+        <h1>登录白板</h1>
+        <p className="subtitle">进入你的白板空间，继续画图、记录和分享想法。</p>
         <form action={signInWithGoogle}>
           <button className="primary-action" type="submit">
             使用 Google 登录

@@ -41,10 +41,10 @@ export default async function HomePage() {
       <main className="home-shell">
         <section className="home-header">
         <div>
-          <p className="eyebrow">Whiteboard Service</p>
-          <h1>团队白板</h1>
+          <p className="eyebrow">White Board</p>
+          <h1>共享白板</h1>
           <p className="subtitle">
-            每个会话都有独立协作房间，画布会保存到数据库，并记录最后更新人。
+            和团队一起画图、写想法、整理讨论内容。
           </p>
         </div>
         <div className="home-actions">
