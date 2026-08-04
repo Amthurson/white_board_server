@@ -2,6 +2,8 @@ import Link from "next/link";
 import Script from "next/script";
 import { notFound, redirect } from "next/navigation";
 import { auth } from "@/auth";
+import AppHeader from "@/components/AppHeader";
+import BoardTitleEditor from "@/components/BoardTitleEditor";
 import WhiteboardClient from "@/components/WhiteboardClient";
 import { prisma } from "@/lib/prisma";
 
@@ -42,16 +44,25 @@ export default async function SessionPage({
         {`window.EXCALIDRAW_ASSET_PATH = window.location.origin + "/";`}
       </Script>
 
-      <header className="board-topbar">
-        <Link href="/" className="back-link" aria-label="返回白板列表">
-          ←
-        </Link>
-        <div className="board-title">
-          <strong>{boardSession.board.title}</strong>
-          <span>{boardSession.title}</span>
-        </div>
+      <AppHeader
+        leading={
+          <Link href="/" className="back-link" aria-label="返回白板列表">
+            ←
+          </Link>
+        }
+        user={{
+          name: authSession.user.name,
+          email: authSession.user.email,
+          image: authSession.user.image,
+        }}
+      >
+        <BoardTitleEditor
+          boardId={boardSession.board.id}
+          initialTitle={boardSession.board.title}
+          subtitle={boardSession.title}
+        />
         <code>{collabServerUrl}</code>
-      </header>
+      </AppHeader>
 
       <WhiteboardClient
         boardId={boardSession.id}

@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
-import { createBoardSession, signOutCurrentUser } from "@/app/actions";
+import { createBoardSession } from "@/app/actions";
+import AppHeader from "@/components/AppHeader";
 import { prisma } from "@/lib/prisma";
 
 export default async function HomePage() {
@@ -29,8 +30,16 @@ export default async function HomePage() {
   });
 
   return (
-    <main className="home-shell">
-      <section className="home-header">
+    <>
+      <AppHeader
+        user={{
+          name: session.user.name,
+          email: session.user.email,
+          image: session.user.image,
+        }}
+      />
+      <main className="home-shell">
+        <section className="home-header">
         <div>
           <p className="eyebrow">Whiteboard Service</p>
           <h1>团队白板</h1>
@@ -44,20 +53,10 @@ export default async function HomePage() {
               新建会话
             </button>
           </form>
-          <form action={signOutCurrentUser}>
-            <button className="secondary-action" type="submit">
-              退出
-            </button>
-          </form>
         </div>
-      </section>
+        </section>
 
-      <section className="user-strip">
-        <span>{session.user.name || session.user.email}</span>
-        <small>{session.user.email}</small>
-      </section>
-
-      <section className="board-list" aria-label="白板列表">
+        <section className="board-list" aria-label="白板列表">
         {boards.length === 0 ? (
           <div className="empty-state">还没有白板会话，先创建一个。</div>
         ) : (
@@ -79,7 +78,8 @@ export default async function HomePage() {
             );
           })
         )}
-      </section>
-    </main>
+        </section>
+      </main>
+    </>
   );
 }

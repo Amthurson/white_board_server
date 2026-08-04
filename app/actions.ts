@@ -1,5 +1,6 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { auth, signIn, signOut } from "@/auth";
 import { prisma } from "@/lib/prisma";
@@ -48,4 +49,70 @@ export async function createBoardSession() {
   });
 
   redirect(`/session/${board.sessions[0].id}`);
+}
+
+export async function updateBoardTitle(boardId: string, title: string) {
+  const session = await auth();
+
+  if (!session?.user?.id) {
+    redirect("/login");
+  }
+
+  const nextTitle = title.trim();
+
+  if (!nextTitle) {
+    return {
+      ok: false,
+      message: "画布名不能为空",
+    };
+  }
+
+  if (nextTitle.length > 80) {
+    return {
+      ok: false,
+      message: "画布名不能超过 80 个字符",
+    };
+  }
+
+  const board = await prisma.board.findFirst({
+    where: {
+      id: boardId,
+      ownerId: session.user.id,
+    },
+    select: {
+      sessions: {
+        select: {
+          id: true,
+        },
+        take: 1,
+      },
+    },
+  });
+
+  if (!board) {
+    return {
+      ok: false,
+      message: "没有权限修改这个画布",
+    };
+  }
+
+  await prisma.board.update({
+    where: {
+      id: boardId,
+    },
+    data: {
+      title: nextTitle,
+    },
+  });
+
+  revalidatePath("/");
+
+  for (const boardSession of board.sessions) {
+    revalidatePath(`/session/${boardSession.id}`);
+  }
+
+  return {
+    ok: true,
+    title: nextTitle,
+  };
 }
