@@ -1,12 +1,33 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
+import { auth } from "@/auth";
+import { createBoardSession, signOutCurrentUser } from "@/app/actions";
+import { prisma } from "@/lib/prisma";
 
-const sampleBoards = [
-  { id: "product-roadmap", name: "产品路线图", updatedAt: "刚刚" },
-  { id: "system-design", name: "系统架构", updatedAt: "今天" },
-  { id: "meeting-notes", name: "会议白板", updatedAt: "昨天" },
-];
+export default async function HomePage() {
+  const session = await auth();
 
-export default function HomePage() {
+  if (!session?.user?.id) {
+    redirect("/login");
+  }
+
+  const boards = await prisma.board.findMany({
+    where: {
+      ownerId: session.user.id,
+    },
+    include: {
+      sessions: {
+        orderBy: {
+          updatedAt: "desc",
+        },
+        take: 1,
+      },
+    },
+    orderBy: {
+      updatedAt: "desc",
+    },
+  });
+
   return (
     <main className="home-shell">
       <section className="home-header">
@@ -14,24 +35,50 @@ export default function HomePage() {
           <p className="eyebrow">Whiteboard Service</p>
           <h1>团队白板</h1>
           <p className="subtitle">
-            Next.js 负责产品页面、权限和存储，Excalidraw 提供编辑器能力，实时协作连接独立 room 服务。
+            每个会话都有独立协作房间，画布会保存到数据库，并记录最后更新人。
           </p>
         </div>
-        <Link className="primary-action" href="/board/new">
-          新建白板
-        </Link>
+        <div className="home-actions">
+          <form action={createBoardSession}>
+            <button className="primary-action" type="submit">
+              新建会话
+            </button>
+          </form>
+          <form action={signOutCurrentUser}>
+            <button className="secondary-action" type="submit">
+              退出
+            </button>
+          </form>
+        </div>
+      </section>
+
+      <section className="user-strip">
+        <span>{session.user.name || session.user.email}</span>
+        <small>{session.user.email}</small>
       </section>
 
       <section className="board-list" aria-label="白板列表">
-        {sampleBoards.map((board) => (
-          <Link className="board-row" href={`/board/${board.id}`} key={board.id}>
-            <span>
-              <strong>{board.name}</strong>
-              <small>/{board.id}</small>
-            </span>
-            <time>{board.updatedAt}</time>
-          </Link>
-        ))}
+        {boards.length === 0 ? (
+          <div className="empty-state">还没有白板会话，先创建一个。</div>
+        ) : (
+          boards.map((board) => {
+            const latestSession = board.sessions[0];
+
+            return (
+              <Link
+                className="board-row"
+                href={latestSession ? `/session/${latestSession.id}` : `/board/${board.id}`}
+                key={board.id}
+              >
+                <span>
+                  <strong>{board.title}</strong>
+                  <small>{latestSession ? `会话 ${latestSession.id}` : board.id}</small>
+                </span>
+                <time>{board.updatedAt.toLocaleString("zh-CN", { hour12: false })}</time>
+              </Link>
+            );
+          })
+        )}
       </section>
     </main>
   );

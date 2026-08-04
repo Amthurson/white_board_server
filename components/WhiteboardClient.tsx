@@ -10,6 +10,12 @@ const Whiteboard = dynamic(() => import("@/components/Whiteboard"), {
 type WhiteboardClientProps = {
   boardId: string;
   collabServerUrl: string;
+  snapshotUrl?: string;
+  user?: {
+    id: string;
+    name?: string | null;
+    email?: string | null;
+  };
 };
 
 export default function WhiteboardClient(props: WhiteboardClientProps) {

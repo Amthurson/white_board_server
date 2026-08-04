@@ -13,6 +13,11 @@ type ConnectionState = "connecting" | "connected" | "disconnected";
 
 type LanCollaborationOptions = {
   boardId: string;
+  user?: {
+    id: string;
+    name?: string | null;
+    email?: string | null;
+  };
 };
 
 type PointerPayload = {
@@ -150,7 +155,7 @@ function mergeElements(currentElements: readonly unknown[], incomingElements: un
   return order.map((id) => mergedById.get(id)).filter(Boolean);
 }
 
-export function useLanCollaboration({ boardId }: LanCollaborationOptions) {
+export function useLanCollaboration({ boardId, user }: LanCollaborationOptions) {
   const [connectionState, setConnectionState] =
     useState<ConnectionState>("connecting");
   const [activePeers, setActivePeers] = useState(0);
@@ -166,7 +171,7 @@ export function useLanCollaboration({ boardId }: LanCollaborationOptions) {
   const socketRef = useRef<Socket | null>(null);
 
   const identity = useMemo(() => {
-    const clientId = createClientId();
+    const clientId = user?.id || createClientId();
     const color =
       colors[
         Array.from(clientId).reduce(
@@ -177,10 +182,10 @@ export function useLanCollaboration({ boardId }: LanCollaborationOptions) {
 
     return {
       clientId,
-      username: createUsername(),
+      username: user?.name || user?.email || createUsername(),
       color,
     };
-  }, []);
+  }, [user?.email, user?.id, user?.name]);
 
   const updateCollaborators = useCallback(() => {
     apiRef.current?.updateScene({
@@ -238,6 +243,7 @@ export function useLanCollaboration({ boardId }: LanCollaborationOptions) {
         {
           roomId: boardId,
           clientId: identity.clientId,
+          userId: user?.id,
           username: identity.username,
           color: identity.color,
         },

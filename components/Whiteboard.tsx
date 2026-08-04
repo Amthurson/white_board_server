@@ -8,14 +8,23 @@ import { useLanCollaboration } from "./useLanCollaboration";
 type WhiteboardProps = {
   boardId: string;
   collabServerUrl: string;
+  snapshotUrl?: string;
+  user?: {
+    id: string;
+    name?: string | null;
+    email?: string | null;
+  };
 };
 
 export default function Whiteboard({
   boardId,
   collabServerUrl,
+  snapshotUrl,
+  user,
 }: WhiteboardProps) {
   const storageKey = useMemo(() => `whiteboard:${boardId}:scene`, [boardId]);
   const shareUrl = useMemo(() => window.location.href, []);
+  const saveTimer = useMemo<{ current: number | null }>(() => ({ current: null }), []);
   const [copyState, setCopyState] = useState<"idle" | "copied" | "failed">(
     "idle",
   );
@@ -27,6 +36,7 @@ export default function Whiteboard({
     setApi,
   } = useLanCollaboration({
     boardId,
+    user,
   });
 
   useEffect(() => {
@@ -52,6 +62,37 @@ export default function Whiteboard({
       console.error = originalConsoleError;
     };
   }, []);
+
+  useEffect(() => {
+    return () => {
+      if (saveTimer.current) {
+        window.clearTimeout(saveTimer.current);
+      }
+    };
+  }, [saveTimer]);
+
+  const initialData = useMemo(
+    () => async () => {
+      if (!snapshotUrl) {
+        const localScene = window.localStorage.getItem(storageKey);
+        return localScene ? JSON.parse(localScene) : null;
+      }
+
+      const response = await fetch(snapshotUrl);
+
+      if (!response.ok) {
+        return null;
+      }
+
+      const data = await response.json();
+
+      return {
+        elements: data.snapshot?.elements || [],
+        files: data.snapshot?.files || {},
+      };
+    },
+    [snapshotUrl, storageKey],
+  );
 
   const copyShareUrl = async () => {
     try {
@@ -101,6 +142,7 @@ export default function Whiteboard({
       </div>
       <Excalidraw
         name={boardId}
+        initialData={initialData}
         isCollaborating={connectionState === "connected"}
         excalidrawAPI={setApi}
         UIOptions={{
@@ -124,6 +166,26 @@ export default function Whiteboard({
               updatedAt: new Date().toISOString(),
             }),
           );
+          if (snapshotUrl) {
+            if (saveTimer.current) {
+              window.clearTimeout(saveTimer.current);
+            }
+
+            saveTimer.current = window.setTimeout(() => {
+              fetch(snapshotUrl, {
+                method: "PUT",
+                headers: {
+                  "content-type": "application/json",
+                },
+                body: JSON.stringify({
+                  elements,
+                  files,
+                }),
+              }).catch(() => {
+                // The realtime room remains usable even if persistence is briefly unavailable.
+              });
+            }, 1500);
+          }
           broadcastScene(elements, files);
         }}
         onPointerUpdate={broadcastPointer}

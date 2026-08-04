@@ -109,6 +109,7 @@ io.on("connection", (socket) => {
       clientId,
       color: payload?.color,
       socketId: socket.id,
+      userId: payload?.userId,
       username: String(payload?.username || "Guest"),
     });
 
