@@ -4,4 +4,7 @@ out
 public/fonts
 certs/
 .env.local
+.env
+.env.*
+!.env.example
 *.tsbuildinfo
