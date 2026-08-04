@@ -2,8 +2,7 @@ FROM node:24-alpine
 
 WORKDIR /app
 
-COPY package.json package-lock.json ./
-RUN npm ci --legacy-peer-deps
+RUN npm install socket.io@4.8.3
 
 COPY scripts ./scripts
 
@@ -12,4 +11,4 @@ ENV PORT=3006
 
 EXPOSE 3006
 
-CMD ["npm", "run", "collab"]
+CMD ["node", "scripts/socket-server.js"]
