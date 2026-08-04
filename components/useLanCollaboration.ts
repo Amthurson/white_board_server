@@ -72,6 +72,84 @@ function getCollaborationServerUrl() {
   return `${window.location.protocol}//${window.location.hostname}:3006`;
 }
 
+function getElementId(element: unknown) {
+  const record = typeof element === "object" && element
+    ? (element as Record<string, unknown>)
+    : null;
+
+  return record && "id" in record
+    ? String(record.id)
+    : null;
+}
+
+function getElementNumber(element: unknown, key: "updated" | "version" | "versionNonce") {
+  const record = typeof element === "object" && element
+    ? (element as Record<string, unknown>)
+    : null;
+
+  return record && key in record
+    ? Number(record[key])
+    : 0;
+}
+
+function isNewerElement(nextElement: unknown, currentElement: unknown) {
+  if (!currentElement) {
+    return true;
+  }
+
+  const nextVersion = getElementNumber(nextElement, "version");
+  const currentVersion = getElementNumber(currentElement, "version");
+
+  if (nextVersion !== currentVersion) {
+    return nextVersion > currentVersion;
+  }
+
+  const nextUpdated = getElementNumber(nextElement, "updated");
+  const currentUpdated = getElementNumber(currentElement, "updated");
+
+  if (nextUpdated !== currentUpdated) {
+    return nextUpdated > currentUpdated;
+  }
+
+  return (
+    getElementNumber(nextElement, "versionNonce") >
+    getElementNumber(currentElement, "versionNonce")
+  );
+}
+
+function mergeElements(currentElements: readonly unknown[], incomingElements: unknown) {
+  const incoming = Array.isArray(incomingElements) ? incomingElements : [];
+  const mergedById = new Map<string, unknown>();
+  const order: string[] = [];
+
+  for (const element of currentElements) {
+    const id = getElementId(element);
+    if (!id) {
+      continue;
+    }
+
+    mergedById.set(id, element);
+    order.push(id);
+  }
+
+  for (const element of incoming) {
+    const id = getElementId(element);
+    if (!id) {
+      continue;
+    }
+
+    if (!mergedById.has(id)) {
+      order.push(id);
+    }
+
+    if (isNewerElement(element, mergedById.get(id))) {
+      mergedById.set(id, element);
+    }
+  }
+
+  return order.map((id) => mergedById.get(id)).filter(Boolean);
+}
+
 export function useLanCollaboration({ boardId }: LanCollaborationOptions) {
   const [connectionState, setConnectionState] =
     useState<ConnectionState>("connecting");
@@ -124,8 +202,10 @@ export function useLanCollaboration({ boardId }: LanCollaborationOptions) {
       }
 
       applyingRemoteSceneRef.current = true;
+      const localScene = apiRef.current.getSceneElementsIncludingDeleted();
+      const mergedScene = mergeElements(localScene, scene);
       apiRef.current.updateScene({
-        elements: scene as Parameters<
+        elements: mergedScene as Parameters<
           ExcalidrawImperativeAPI["updateScene"]
         >[0]["elements"],
         appState: {
@@ -264,10 +344,13 @@ export function useLanCollaboration({ boardId }: LanCollaborationOptions) {
       }
 
       sceneBroadcastTimerRef.current = window.setTimeout(() => {
+        const api = apiRef.current;
+        const sceneElements = api?.getSceneElementsIncludingDeleted() || elements;
+
         socketRef.current?.emit("scene-update", {
           roomId: boardId,
           clientId: identity.clientId,
-          elements,
+          elements: sceneElements,
           files,
         });
       }, sceneBroadcastDebounceMs);

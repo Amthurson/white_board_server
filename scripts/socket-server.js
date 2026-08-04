@@ -24,6 +24,58 @@ function presence(room) {
   }));
 }
 
+function isNewerElement(nextElement, currentElement) {
+  if (!currentElement) {
+    return true;
+  }
+
+  const nextVersion = Number(nextElement?.version || 0);
+  const currentVersion = Number(currentElement?.version || 0);
+
+  if (nextVersion !== currentVersion) {
+    return nextVersion > currentVersion;
+  }
+
+  const nextUpdated = Number(nextElement?.updated || 0);
+  const currentUpdated = Number(currentElement?.updated || 0);
+
+  if (nextUpdated !== currentUpdated) {
+    return nextUpdated > currentUpdated;
+  }
+
+  return Number(nextElement?.versionNonce || 0) > Number(currentElement?.versionNonce || 0);
+}
+
+function mergeElements(currentElements, incomingElements) {
+  const mergedById = new Map();
+  const order = [];
+
+  for (const element of currentElements || []) {
+    if (!element?.id) {
+      continue;
+    }
+
+    mergedById.set(element.id, element);
+    order.push(element.id);
+  }
+
+  for (const element of incomingElements || []) {
+    if (!element?.id) {
+      continue;
+    }
+
+    if (!mergedById.has(element.id)) {
+      order.push(element.id);
+    }
+
+    if (isNewerElement(element, mergedById.get(element.id))) {
+      mergedById.set(element.id, element);
+    }
+  }
+
+  return order.map((id) => mergedById.get(id)).filter(Boolean);
+}
+
 const server = createServer((request, response) => {
   if (request.url === "/healthz" || request.url === "/") {
     response.writeHead(200, { "content-type": "text/plain; charset=utf-8" });
@@ -82,8 +134,11 @@ io.on("connection", (socket) => {
     }
 
     const room = getRoom(roomId);
-    room.scene = payload?.elements || [];
-    room.files = payload?.files || {};
+    room.scene = mergeElements(room.scene, payload?.elements || []);
+    room.files = {
+      ...room.files,
+      ...(payload?.files || {}),
+    };
     const fileCount = Object.keys(room.files).length;
     console.log(
       `scene-update room=${roomId} client=${clientId} elements=${room.scene.length} files=${fileCount}`,
