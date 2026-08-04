@@ -13,12 +13,9 @@ export async function GET(
   }
 
   const { sessionId } = await params;
-  const boardSession = await prisma.boardSession.findFirst({
+  const boardSession = await prisma.boardSession.findUnique({
     where: {
       id: sessionId,
-      board: {
-        ownerId: authSession.user.id,
-      },
     },
     include: {
       snapshots: true,
@@ -64,12 +61,9 @@ export async function PUT(
   const elements = Array.isArray(body?.elements) ? body.elements : [];
   const files = body?.files && typeof body.files === "object" ? body.files : {};
 
-  const boardSession = await prisma.boardSession.findFirst({
+  const boardSession = await prisma.boardSession.findUnique({
     where: {
       id: sessionId,
-      board: {
-        ownerId: authSession.user.id,
-      },
     },
     select: {
       id: true,

@@ -12,19 +12,16 @@ export default async function SessionPage({
 }: {
   params: Promise<{ sessionId: string }>;
 }) {
+  const { sessionId } = await params;
   const authSession = await auth();
 
   if (!authSession?.user?.id) {
-    redirect("/login");
+    redirect(`/login?callbackUrl=${encodeURIComponent(`/session/${sessionId}`)}`);
   }
 
-  const { sessionId } = await params;
-  const boardSession = await prisma.boardSession.findFirst({
+  const boardSession = await prisma.boardSession.findUnique({
     where: {
       id: sessionId,
-      board: {
-        ownerId: authSession.user.id,
-      },
     },
     include: {
       board: true,
@@ -61,7 +58,6 @@ export default async function SessionPage({
           initialTitle={boardSession.board.title}
           subtitle={boardSession.title}
         />
-        <code>{collabServerUrl}</code>
       </AppHeader>
 
       <WhiteboardClient

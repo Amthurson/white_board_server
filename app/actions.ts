@@ -5,8 +5,22 @@ import { redirect } from "next/navigation";
 import { auth, signIn, signOut } from "@/auth";
 import { prisma } from "@/lib/prisma";
 
-export async function signInWithGoogle() {
-  await signIn("google", { redirectTo: "/" });
+function getSafeRedirectPath(value: FormDataEntryValue | null) {
+  if (typeof value !== "string" || !value.startsWith("/")) {
+    return "/";
+  }
+
+  if (value.startsWith("//")) {
+    return "/";
+  }
+
+  return value;
+}
+
+export async function signInWithGoogle(formData?: FormData) {
+  const redirectTo = getSafeRedirectPath(formData?.get("callbackUrl") || null);
+
+  await signIn("google", { redirectTo });
 }
 
 export async function signOutCurrentUser() {

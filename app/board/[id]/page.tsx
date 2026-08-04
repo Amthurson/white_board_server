@@ -26,7 +26,6 @@ export default async function BoardPage({
           <strong>{id === "new" ? "未命名白板" : id}</strong>
           <span>{collabEnabled ? "协作已配置" : "本地编辑模式"}</span>
         </div>
-        <code>{collabServerUrl}</code>
       </header>
 
       <WhiteboardClient
