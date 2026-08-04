@@ -50,7 +50,7 @@ const colors = [
 ];
 
 function createClientId() {
-  const existing = window.localStorage.getItem("whiteboard:client-id");
+  const existing = window.sessionStorage.getItem("whiteboard:client-id");
   if (existing) {
     return existing;
   }
@@ -61,7 +61,7 @@ function createClientId() {
       : `client-${Date.now().toString(36)}-${Math.random()
           .toString(36)
           .slice(2)}`;
-  window.localStorage.setItem("whiteboard:client-id", id);
+  window.sessionStorage.setItem("whiteboard:client-id", id);
   return id;
 }
 
@@ -181,7 +181,7 @@ export function useLanCollaboration({ boardId, user }: LanCollaborationOptions) 
   const socketRef = useRef<Socket | null>(null);
 
   const identity = useMemo(() => {
-    const clientId = user?.id || createClientId();
+    const clientId = createClientId();
     const color =
       colors[
         Array.from(clientId).reduce(
