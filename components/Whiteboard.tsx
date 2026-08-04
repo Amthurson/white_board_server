@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { Excalidraw } from "@excalidraw/excalidraw";
+import { useEffect, useMemo } from "react";
+import { Excalidraw, MainMenu } from "@excalidraw/excalidraw";
 import "@excalidraw/excalidraw/index.css";
 import { useLanCollaboration } from "./useLanCollaboration";
 
@@ -23,17 +23,11 @@ export default function Whiteboard({
   user,
 }: WhiteboardProps) {
   const storageKey = useMemo(() => `whiteboard:${boardId}:scene`, [boardId]);
-  const shareUrl = useMemo(() => window.location.href, []);
   const saveTimer = useMemo<{ current: number | null }>(() => ({ current: null }), []);
-  const [copyState, setCopyState] = useState<"idle" | "copied" | "failed">(
-    "idle",
-  );
   const {
-    activePeers,
     broadcastPointer,
     broadcastScene,
     connectionState,
-    peers,
     setApi,
   } = useLanCollaboration({
     boardId,
@@ -95,77 +89,8 @@ export default function Whiteboard({
     [snapshotUrl, storageKey],
   );
 
-  const copyShareUrl = async () => {
-    try {
-      if (navigator.clipboard?.writeText) {
-        await navigator.clipboard.writeText(shareUrl);
-      } else {
-        const textarea = document.createElement("textarea");
-        textarea.value = shareUrl;
-        textarea.setAttribute("readonly", "true");
-        textarea.style.left = "-9999px";
-        textarea.style.position = "fixed";
-        document.body.appendChild(textarea);
-        textarea.select();
-
-        const copied = document.execCommand("copy");
-        document.body.removeChild(textarea);
-
-        if (!copied) {
-          throw new Error("copy command failed");
-        }
-      }
-
-      setCopyState("copied");
-      window.setTimeout(() => setCopyState("idle"), 1600);
-    } catch {
-      setCopyState("failed");
-      window.prompt("复制失败，请手动复制链接", shareUrl);
-    }
-  };
-
-  const collaborationLabel =
-    connectionState === "connected"
-      ? "在线协作"
-      : connectionState === "connecting"
-        ? "协作连接中"
-        : "协作离线";
-
   return (
     <section className="whiteboard-frame">
-      <div className="collab-panel">
-        <span className={`collab-dot collab-dot-${connectionState}`} />
-        <span>{collaborationLabel}</span>
-        {peers.length > 0 ? (
-          <div className="collab-peers" aria-label="当前协作者">
-            {peers.slice(0, 5).map((peer) => (
-              <span
-                className="collab-peer"
-                key={peer.clientId}
-                style={{
-                  background: peer.color?.background || "#e5e7eb",
-                  color: peer.color?.stroke || "#1f2933",
-                }}
-                title={peer.username}
-              >
-                {peer.username.trim().charAt(0).toUpperCase()}
-              </span>
-            ))}
-            {peers.length > 5 ? <span className="collab-peer-more">+{peers.length - 5}</span> : null}
-          </div>
-        ) : null}
-        <strong>{activePeers} 人协作中</strong>
-        <button
-          type="button"
-          onClick={copyShareUrl}
-        >
-          {copyState === "copied"
-            ? "已复制"
-            : copyState === "failed"
-              ? "手动复制"
-              : "复制分享链接"}
-        </button>
-      </div>
       <Excalidraw
         name={boardId}
         initialData={initialData}
@@ -215,7 +140,20 @@ export default function Whiteboard({
           broadcastScene(elements, files);
         }}
         onPointerUpdate={broadcastPointer}
-      />
+      >
+        <MainMenu>
+          <MainMenu.DefaultItems.LoadScene />
+          <MainMenu.DefaultItems.SaveToActiveFile />
+          <MainMenu.DefaultItems.Export />
+          <MainMenu.DefaultItems.SaveAsImage />
+          <MainMenu.DefaultItems.SearchMenu />
+          <MainMenu.DefaultItems.Help />
+          <MainMenu.DefaultItems.ClearCanvas />
+          <MainMenu.Separator />
+          <MainMenu.DefaultItems.ToggleTheme />
+          <MainMenu.DefaultItems.ChangeCanvasBackground />
+        </MainMenu>
+      </Excalidraw>
       <input type="hidden" name="collabServerUrl" value={collabServerUrl} />
     </section>
   );

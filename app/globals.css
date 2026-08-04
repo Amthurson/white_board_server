@@ -60,9 +60,31 @@ a {
   min-width: 0;
 }
 
+.app-header-right {
+  align-items: center;
+  display: flex;
+  flex: 0 0 auto;
+  gap: 12px;
+}
+
 .brand-link {
   color: var(--accent-strong);
   font-weight: 800;
+}
+
+.header-share-button {
+  background: var(--accent);
+  border: 0;
+  border-radius: 6px;
+  color: #ffffff;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 800;
+  padding: 10px 14px;
+}
+
+.header-share-button:hover {
+  background: var(--accent-strong);
 }
 
 .user-menu {
@@ -332,61 +354,6 @@ h1 {
   position: relative;
 }
 
-.collab-panel {
-  align-items: center;
-  background: rgba(255, 255, 255, 0.92);
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  box-shadow: 0 8px 24px rgba(31, 41, 51, 0.08);
-  display: flex;
-  gap: 10px;
-  padding: 8px 10px;
-  position: absolute;
-  right: 14px;
-  top: 14px;
-  z-index: 5;
-}
-
-.collab-peers {
-  align-items: center;
-  display: flex;
-  margin-left: 2px;
-}
-
-.collab-peer,
-.collab-peer-more {
-  align-items: center;
-  border: 2px solid #ffffff;
-  border-radius: 999px;
-  display: inline-flex;
-  font-size: 12px;
-  font-weight: 800;
-  height: 26px;
-  justify-content: center;
-  margin-left: -6px;
-  width: 26px;
-}
-
-.collab-peer:first-child {
-  margin-left: 0;
-}
-
-.collab-peer-more {
-  background: #eef3ef;
-  color: var(--accent-strong);
-}
-
-.collab-panel button {
-  background: var(--accent);
-  border: 0;
-  border-radius: 6px;
-  color: #ffffff;
-  cursor: pointer;
-  font: inherit;
-  font-weight: 700;
-  padding: 7px 10px;
-}
-
 .collab-dot {
   border-radius: 999px;
   display: inline-block;
@@ -407,10 +374,8 @@ h1 {
 }
 
 @media (max-width: 720px) {
-  .collab-panel {
-    left: 12px;
-    right: 12px;
-    top: 68px;
+  .header-share-button {
+    padding: 9px 10px;
   }
 }
 

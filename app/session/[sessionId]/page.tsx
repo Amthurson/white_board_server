@@ -4,6 +4,7 @@ import { notFound, redirect } from "next/navigation";
 import { auth } from "@/auth";
 import AppHeader from "@/components/AppHeader";
 import BoardTitleEditor from "@/components/BoardTitleEditor";
+import ShareButton from "@/components/ShareButton";
 import WhiteboardClient from "@/components/WhiteboardClient";
 import { prisma } from "@/lib/prisma";
 
@@ -52,6 +53,7 @@ export default async function SessionPage({
           email: authSession.user.email,
           image: authSession.user.image,
         }}
+        actions={<ShareButton />}
       >
         <BoardTitleEditor
           boardId={boardSession.board.id}
