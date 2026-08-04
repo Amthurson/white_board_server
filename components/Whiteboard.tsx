@@ -33,6 +33,7 @@ export default function Whiteboard({
     broadcastPointer,
     broadcastScene,
     connectionState,
+    peers,
     setApi,
   } = useLanCollaboration({
     boardId,
@@ -123,12 +124,37 @@ export default function Whiteboard({
     }
   };
 
+  const collaborationLabel =
+    connectionState === "connected"
+      ? "在线协作"
+      : connectionState === "connecting"
+        ? "协作连接中"
+        : "协作离线";
+
   return (
     <section className="whiteboard-frame">
       <div className="collab-panel">
         <span className={`collab-dot collab-dot-${connectionState}`} />
-        <span>{connectionState === "connected" ? "局域网协作" : "协作连接中"}</span>
-        <strong>{activePeers} 在线</strong>
+        <span>{collaborationLabel}</span>
+        {peers.length > 0 ? (
+          <div className="collab-peers" aria-label="当前协作者">
+            {peers.slice(0, 5).map((peer) => (
+              <span
+                className="collab-peer"
+                key={peer.clientId}
+                style={{
+                  background: peer.color?.background || "#e5e7eb",
+                  color: peer.color?.stroke || "#1f2933",
+                }}
+                title={peer.username}
+              >
+                {peer.username.trim().charAt(0).toUpperCase()}
+              </span>
+            ))}
+            {peers.length > 5 ? <span className="collab-peer-more">+{peers.length - 5}</span> : null}
+          </div>
+        ) : null}
+        <strong>{activePeers} 人协作中</strong>
         <button
           type="button"
           onClick={copyShareUrl}

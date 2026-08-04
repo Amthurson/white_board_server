@@ -347,6 +347,35 @@ h1 {
   z-index: 5;
 }
 
+.collab-peers {
+  align-items: center;
+  display: flex;
+  margin-left: 2px;
+}
+
+.collab-peer,
+.collab-peer-more {
+  align-items: center;
+  border: 2px solid #ffffff;
+  border-radius: 999px;
+  display: inline-flex;
+  font-size: 12px;
+  font-weight: 800;
+  height: 26px;
+  justify-content: center;
+  margin-left: -6px;
+  width: 26px;
+}
+
+.collab-peer:first-child {
+  margin-left: 0;
+}
+
+.collab-peer-more {
+  background: #eef3ef;
+  color: var(--accent-strong);
+}
+
 .collab-panel button {
   background: var(--accent);
   border: 0;

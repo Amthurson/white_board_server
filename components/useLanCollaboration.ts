@@ -29,6 +29,15 @@ type PointerPayload = {
   button: "down" | "up";
 };
 
+type CollaborationPeer = {
+  clientId: string;
+  username: string;
+  color?: {
+    background: string;
+    stroke: string;
+  };
+};
+
 const remoteSceneBroadcastPauseMs = 1000;
 const sceneBroadcastDebounceMs = 500;
 
@@ -62,7 +71,7 @@ function createUsername() {
     return existing;
   }
 
-  const name = `局域网用户-${Math.floor(Math.random() * 900 + 100)}`;
+  const name = `访客-${Math.floor(Math.random() * 900 + 100)}`;
   window.localStorage.setItem("whiteboard:username", name);
   return name;
 }
@@ -159,6 +168,7 @@ export function useLanCollaboration({ boardId, user }: LanCollaborationOptions) 
   const [connectionState, setConnectionState] =
     useState<ConnectionState>("connecting");
   const [activePeers, setActivePeers] = useState(0);
+  const [peers, setPeers] = useState<CollaborationPeer[]>([]);
   const apiRef = useRef<ExcalidrawImperativeAPI | null>(null);
   const applyingRemoteSceneRef = useRef(false);
   const canBroadcastSceneRef = useRef(false);
@@ -192,6 +202,35 @@ export function useLanCollaboration({ boardId, user }: LanCollaborationOptions) 
       collaborators: new Map(collaboratorsRef.current),
     });
   }, []);
+
+  const updatePresence = useCallback(
+    (clients?: unknown[]) => {
+      const nextPeers = (Array.isArray(clients) ? clients : [])
+        .map((client) => {
+          const record =
+            typeof client === "object" && client
+              ? (client as Record<string, unknown>)
+              : null;
+
+          if (!record?.clientId) {
+            return null;
+          }
+
+          return {
+            clientId: String(record.clientId),
+            username: String(record.username || "访客"),
+            color: record.color as CollaborationPeer["color"],
+          };
+        })
+        .filter(Boolean) as CollaborationPeer[];
+
+      setPeers(nextPeers);
+      setActivePeers(
+        nextPeers.filter((peer) => peer.clientId !== identity.clientId).length,
+      );
+    },
+    [identity.clientId],
+  );
 
   const markRemoteSceneApplied = useCallback(() => {
     window.setTimeout(() => {
@@ -252,7 +291,7 @@ export function useLanCollaboration({ boardId, user }: LanCollaborationOptions) 
           files?: unknown;
           scene?: unknown;
         }) => {
-          setActivePeers(Math.max(0, (message.clients?.length || 1) - 1));
+          updatePresence(message.clients);
 
           if (message.scene) {
             applyRemoteScene(message.scene, message.files);
@@ -269,6 +308,7 @@ export function useLanCollaboration({ boardId, user }: LanCollaborationOptions) 
     socket.on("disconnect", () => {
       setConnectionState("disconnected");
       setActivePeers(0);
+      setPeers([]);
       collaboratorsRef.current = new Map();
       updateCollaborators();
     });
@@ -278,7 +318,7 @@ export function useLanCollaboration({ boardId, user }: LanCollaborationOptions) 
     });
 
     socket.on("presence", (message: { clients?: unknown[] }) => {
-      setActivePeers(Math.max(0, (message.clients?.length || 1) - 1));
+      updatePresence(message.clients);
     });
 
     socket.on(
@@ -319,6 +359,7 @@ export function useLanCollaboration({ boardId, user }: LanCollaborationOptions) 
     identity.clientId,
     identity.color,
     identity.username,
+    updatePresence,
     updateCollaborators,
   ]);
 
@@ -383,6 +424,7 @@ export function useLanCollaboration({ boardId, user }: LanCollaborationOptions) 
     broadcastPointer,
     broadcastScene,
     connectionState,
+    peers,
     setApi,
   };
 }
